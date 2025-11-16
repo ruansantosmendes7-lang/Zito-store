@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zito Store - Scripts & Mods FiveM</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="header">
+        <div class="logo">Zito Store</div>
+        <nav class="nav">
+            <a href="#home" class="nav-link active" data-page="home">Home</a>
+            <a href="#shop" class="nav-link" data-page="shop">Loja</a>
+            <a href="#support" class="nav-link" data-page="support">Suporte</a>
+        </nav>
+        <div class="user-actions">
+            <button class="icon-btn" id="userIcon">👤</button>
+            <button class="icon-btn cart-btn">🛒 (0)</button>
+        </div>
+    </header>
+
+    <main id="app-content">
+        </main>
+
+    <footer class="footer">
+        <p>&copy; 2025 Zito Store. Todos os direitos reservados. | Desenvolvido por Zito.</p>
+        <div class="footer-links">
+            <a href="#">Termos de Serviço</a> | <a href="#">Política de Privacidade</a> | <a href="#">Contato</a>
+            | <a href="https://discord.gg/aE4hgbh9BW" target="_blank" title="Entre no Discord da Zito Store">Discord</a>
+        </div>
+    </footer>
+
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Entrar na Zito Store</h2>
+            <div class="social-login-buttons">
+                <button class="social-btn discord-btn">
+                    <img src="https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6cc3fae1a7582cd290_icon_clyde_white_RGB.png" alt="Discord Icon" style="width:20px; vertical-align: middle;">
+                    Entrar com Discord
+                </button>
+            </div>
+            <p class="or-separator">ou</p>
+            <form class="email-login-form">
+                <input type="email" placeholder="Seu e-mail" required>
+                <input type="password" placeholder="Sua senha" required>
+                <button type="submit" class="cta-button">Entrar</button>
+            </form>
+            <p class="forgot-password"><a href="#">Esqueceu a senha?</a></p>
+            <p class="register-link">Não tem conta? <a href="#">Cadastre-se</a></p>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+
+</body>
+</html>
