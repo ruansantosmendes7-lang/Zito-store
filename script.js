@@ -168,7 +168,7 @@ const pageContent = {
         </section>
     `,
     
-    // SUPPORT PAGE (ATUALIZADA COM O LINK DO DISCORD E SEU ID)
+    // SUPPORT PAGE
     support: `
         <section class="support-section" style="padding: 4rem 5%; text-align: center;">
             <h1 style="color: var(--color-primary);">Central de Suporte</h1>
@@ -193,38 +193,17 @@ const pageContent = {
 
 const appContent = document.getElementById('app-content');
 const navLinks = document.querySelectorAll('.nav-link');
-const cartCountElement = document.querySelector('.cart-btn'); // Elemento para exibir a contagem do carrinho
+const cartCountElement = document.querySelector('.cart-btn');
 
-// Variável para armazenar os itens do carrinho (usa localStorage para persistência)
+// Variáveis para o carrinho (usa localStorage)
 let cartItems = JSON.parse(localStorage.getItem('zitoStoreCart')) || []; 
 
-// Variáveis e Event Listeners para o Modal de Login
+// Variáveis do Modal de Login
 const loginModal = document.getElementById('loginModal');
-const userIconButton = document.querySelector('.header #userIcon'); // O ícone de usuário
-const closeButton = loginModal ? loginModal.querySelector('.close-button') : null; // Verifica se o modal existe
+const userIconButton = document.querySelector('.header #userIcon'); 
+const closeButton = loginModal ? loginModal.querySelector('.close-button') : null; 
 
-if (userIconButton) {
-    userIconButton.addEventListener('click', () => {
-        if (loginModal) {
-            loginModal.style.display = 'flex'; // Exibe o modal
-        }
-    });
-}
-
-if (closeButton) {
-    closeButton.addEventListener('click', () => {
-        loginModal.style.display = 'none'; // Esconde o modal
-    });
-
-    // Fechar o modal se clicar fora dele
-    window.addEventListener('click', (event) => {
-        if (event.target === loginModal) {
-            loginModal.style.display = 'none';
-        }
-    });
-}
-
-// Elementos do formulário de Login no modal
+// Elementos do formulário
 const emailLoginForm = loginModal ? loginModal.querySelector('.email-login-form') : null;
 const discordLoginBtn = loginModal ? loginModal.querySelector('.discord-btn') : null;
 const registerLink = loginModal ? loginModal.querySelector('.register-link a') : null;
@@ -233,9 +212,6 @@ const registerLink = loginModal ? loginModal.querySelector('.register-link a') :
 // 3. FUNÇÕES DE CARRINHO
 // ==========================================================
 
-/**
- * Atualiza a contagem de itens no ícone do carrinho.
- */
 function updateCartCount() {
     const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
     if (cartCountElement) {
@@ -243,10 +219,6 @@ function updateCartCount() {
     }
 }
 
-/**
- * Adiciona um produto ao carrinho.
- * @param {object} product - Objeto com id, name e price do produto.
- */
 function addToCart(product) {
     const existingItem = cartItems.find(item => item.id === product.id);
 
@@ -256,36 +228,72 @@ function addToCart(product) {
         cartItems.push({ ...product, quantity: 1 });
     }
 
-    localStorage.setItem('zitoStoreCart', JSON.stringify(cartItems)); // Salva no localStorage
+    localStorage.setItem('zitoStoreCart', JSON.stringify(cartItems));
     updateCartCount();
-    // Exibe notificação (pode ser substituída por um Toast/Pop-up mais bonito)
     alert(`"${product.name}" adicionado ao carrinho!`); 
 }
 
 
 // ==========================================================
-// 4. FUNÇÕES DE NAVEGAÇÃO SPA
+// 4. FUNÇÕES DE AUTENTICAÇÃO
 // ==========================================================
 
-/**
- * Renderiza o conteúdo da página principal.
- * @param {string} page - O identificador da página ('home', 'shop', 'detail', etc.).
- * @param {string | null} productId - O ID do produto, se for uma página de detalhes.
- */
+function updateUserUI(username) {
+    if (userIconButton) {
+        userIconButton.innerHTML = `Olá, ${username}`; 
+        userIconButton.style.color = 'var(--color-primary)';
+    }
+}
+
+// Simulação de Login
+async function loginWithEmail(email, password) {
+    if (email === 'teste@zito.com' && password === '123456') {
+        alert('Simulação de Login bem-sucedida! Bem-vindo(a), Zito.');
+        localStorage.setItem('userToken', 'fake-login-token-123');
+        loginModal.style.display = 'none';
+        updateUserUI('Zito');
+    } else {
+        alert('Simulação de Login falhou: E-mail ou senha incorretos.');
+    }
+}
+
+// Simulação de Registro
+async function registerWithEmail(email, password) {
+    alert('Simulação de Cadastro bem-sucedida! Tente fazer login agora.');
+}
+
+// Inicia o fluxo OAuth do Discord
+function loginWithDiscord() {
+    const discordClientId = "1131428330646798408";
+    const discordRedirectUri = encodeURIComponent("https://SEU_DOMINIO_DO_BACKEND.com/api/auth/discord/callback");
+    const discordScope = encodeURIComponent("identify email"); 
+
+    const discordAuthUrl = `https://discord.com/api/oauth2/authorize?client_id=${discordClientId}&redirect_uri=${discordRedirectUri}&response_type=code&scope=${discordScope}`;
+    
+    alert('Iniciando o login com Discord. Um Back-end real faria o redirecionamento agora para:\n' + discordAuthUrl);
+    
+    // Simula o sucesso do login via Discord
+    loginModal.style.display = 'none';
+    localStorage.setItem('userToken', 'fake-discord-token-abc'); 
+    updateUserUI('Usuário Discord'); 
+}
+
+
+// ==========================================================
+// 5. FUNÇÕES DE NAVEGAÇÃO SPA
+// ==========================================================
+
 function renderContent(page, productId = null) {
     let content;
 
-    // 1. Determina o conteúdo a ser renderizado
     if (page === 'detail' && productId) {
         content = pageContent.detail(productId);
     } else {
         content = pageContent[page] || pageContent.home; 
     }
     
-    // 2. Injeta o conteúdo no MAIN
     appContent.innerHTML = content;
     
-    // 3. Atualiza o estado da navegação (link ativo)
     navLinks.forEach(link => {
         link.classList.remove('active');
         if (link.dataset.page === page || (page === 'detail' && link.dataset.page === 'shop')) {
@@ -293,121 +301,127 @@ function renderContent(page, productId = null) {
         }
     });
 
-    // 4. Atualiza a URL (SPA)
     history.pushState(null, '', `#${page}${productId ? '-' + productId : ''}`);
 }
 
 // ==========================================================
-// 5. FUNÇÕES DE AUTENTICAÇÃO (NOVO)
+// 6. EVENT HANDLERS E LISTENERS
 // ==========================================================
 
-/**
- * Simula o login com e-mail e senha.
- * Em um Back-end real, enviaria os dados e receberia um token de sessão.
- * @param {string} email
- * @param {string} password
- */
-async function loginWithEmail(email, password) {
-    console.log('Tentando login com e-mail:', email);
-    // Aqui faríamos uma chamada de API real:
-    // try {
-    //     const response = await fetch('/api/auth/login', {
-    //         method: 'POST',
-    //         headers: { 'Content-Type': 'application/json' },
-    //         body: JSON.stringify({ email, password })
-    //     });
-    //     const data = await response.json();
-    //     if (response.ok) {
-    //         alert('Login bem-sucedido! Bem-vindo(a), ' + data.username);
-    //         localStorage.setItem('userToken', data.token); // Salva o token
-    //         loginModal.style.display = 'none'; // Fecha o modal
-    //         updateUserUI(data.username); // Atualiza a UI do usuário
-    //     } else {
-    //         alert('Erro no login: ' + (data.message || 'Credenciais inválidas.'));
-    //     }
-    // } catch (error) {
-    //     console.error('Erro de rede:', error);
-    //     alert('Erro de conexão ao tentar fazer login.');
-    // }
+// Listeners para abrir/fechar o Modal de Login
+if (userIconButton) {
+    userIconButton.addEventListener('click', () => {
+        if (loginModal) {
+            loginModal.style.display = 'flex';
+        }
+    });
+}
 
-    // SIMULAÇÃO:
-    if (email === 'teste@zito.com' && password === '123456') {
-        alert('Simulação de Login bem-sucedida! Bem-vindo(a), Zito.');
-        localStorage.setItem('userToken', 'fake-discord-token-123'); // Salva um token de simulação
+if (closeButton) {
+    closeButton.addEventListener('click', () => {
         loginModal.style.display = 'none';
-        updateUserUI('Zito'); // Atualiza o ícone de usuário
-    } else {
-        alert('Simulação de Login falhou: E-mail ou senha incorretos.');
+    });
+
+    window.addEventListener('click', (event) => {
+        if (event.target === loginModal) {
+            loginModal.style.display = 'none';
+        }
+    });
+}
+
+// Listener para o formulário de E-mail/Senha (Login)
+if (emailLoginForm) {
+    emailLoginForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const emailInput = emailLoginForm.querySelector('input[type="email"]');
+        const passwordInput = emailLoginForm.querySelector('input[type="password"]');
+
+        if (emailInput && passwordInput) {
+            loginWithEmail(emailInput.value, passwordInput.value);
+        }
+    });
+}
+
+// Listener para cliques em links e botões (SPA, Carrinho, Discord, Registro)
+document.addEventListener('click', (event) => {
+    const target = event.target;
+
+    // Handler para links de navegação (SPA)
+    const navTarget = target.closest('[data-page]');
+    if (navTarget) {
+        event.preventDefault(); 
+        const page = navTarget.dataset.page;
+        const productId = navTarget.dataset.productId;
+
+        if (page === 'detail' && productId) {
+            renderContent('detail', productId);
+        } else {
+            renderContent(page);
+        }
+        window.scrollTo(0, 0); 
+        return; 
+    }
+
+    // Handler para adicionar ao carrinho
+    if (target.dataset.action === 'addToCart' || target.closest('[data-action="addToCart"]')) {
+        event.preventDefault(); 
+        const button = target.closest('[data-action="addToCart"]');
+        if (button) {
+            const product = {
+                id: button.dataset.productId,
+                name: button.dataset.productName,
+                price: parseFloat(button.dataset.productPrice)
+            };
+            addToCart(product);
+        }
+        return;
+    }
+    
+    // Handler para o botão de login com Discord
+    if (discordLoginBtn && (target === discordLoginBtn || discordLoginBtn.contains(target))) {
+        event.preventDefault();
+        loginWithDiscord();
+        return;
+    }
+
+    // Handler para o link "Cadastre-se"
+    if (registerLink && (target === registerLink || registerLink.contains(target))) {
+        event.preventDefault();
+        const email = prompt('Digite seu e-mail para cadastro (Simulação):');
+        const password = prompt('Digite sua senha para cadastro (Simulação):');
+        if (email && password) {
+            registerWithEmail(email, password);
+        }
+        return;
+    }
+});
+
+
+// ==========================================================
+// 7. INICIALIZAÇÃO DA APLICAÇÃO
+// ==========================================================
+
+function initializePage() {
+    // Carrega a página correta no hash da URL
+    const hash = window.location.hash.substring(1); 
+    let pageToLoad = 'home';
+    let productId = null;
+
+    if (hash) {
+        const parts = hash.split('-'); 
+        pageToLoad = parts[0]; 
+        productId = parts[1];  
+    }
+    
+    renderContent(pageToLoad, productId);
+    updateCartCount();
+
+    // Simula o estado do usuário logado
+    const userToken = localStorage.getItem('userToken');
+    if (userToken) {
+        updateUserUI('Zito');
     }
 }
 
-/**
- * Simula a criação de uma nova conta com e-mail e senha.
- * Em um Back-end real, enviaria os dados e registraria o usuário.
- * @param {string} email
- * @param {string} password
- */
-async function registerWithEmail(email, password) {
-    console.log('Tentando registrar com e-mail:', email);
-    // try {
-    //     const response = await fetch('/api/auth/register', {
-    //         method: 'POST',
-    //         headers: { 'Content-Type': 'application/json' },
-    //         body: JSON.stringify({ email, password })
-    //     });
-    //     const data = await response.json();
-    //     if (response.ok) {
-    //         alert('Conta criada com sucesso! Você já está logado(a).');
-    //         localStorage.setItem('userToken', data.token);
-    //         loginModal.style.display = 'none';
-    //         updateUserUI(data.username);
-    //     } else {
-    //         alert('Erro no registro: ' + (data.message || 'Este e-mail já está em uso.'));
-    //     }
-    // } catch (error) {
-    //     console.error('Erro de rede:', error);
-    //     alert('Erro de conexão ao tentar registrar.');
-    // }
-
-    // SIMULAÇÃO:
-    alert('Simulação de Cadastro bem-sucedida! Tente fazer login agora.');
-    // Para uma simulação mais completa, você poderia auto-logar o usuário ou levá-lo à tela de login.
-    // loginWithEmail(email, password); // Auto-login após registro
-}
-
-/**
- * Redireciona para o fluxo OAuth do Discord.
- * O Back-end real iniciaria este redirecionamento.
- */
-function loginWithDiscord() {
-    console.log('Redirecionando para login com Discord...');
-    const discordClientId = "1131428330646798408"; // Seu ID do aplicativo Discord
-    // É crucial que esta redirect_uri seja a URL do seu backend que vai lidar com o callback do Discord
-    const discordRedirectUri = encodeURIComponent("https://SEU_DOMINIO_DO_BACKEND.com/api/auth/discord/callback"); 
-    const discordScope = encodeURIComponent("identify email"); // Permissões que você solicita
-
-    // Esta é a URL final para a qual o USUÁRIO será redirecionado para autorizar no Discord
-    const discordAuthUrl = `https://discord.com/api/oauth2/authorize?client_id=${discordClientId}&redirect_uri=${discordRedirectUri}&response_type=code&scope=${discordScope}`;
-    
-    alert('Iniciando o login com Discord. Um Back-end real faria o redirecionamento agora para:\n' + discordAuthUrl);
-    // Para realmente testar, você descomentaria a linha abaixo e configuraria seu backend
-    // window.location.href = discordAuthUrl;
-    
-    // Para a simulação, fechamos o modal e mostramos um usuário logado após o alerta
-    loginModal.style.display = 'none';
-    localStorage.setItem('userToken', 'fake-discord-token-abc'); // Simula que o login foi bem-sucedido
-    updateUserUI('Usuário Discord'); // Nome de exemplo
-}
-
-/**
- * Atualiza a interface do usuário no cabeçalho após o login.
- * @param {string} username - O nome do usuário logado.
- */
-function updateUserUI(username) {
-    if (userIconButton) {
-        userIconButton.innerHTML = `Olá, ${username}`; // Exibe "Olá, Zito"
-        userIconButton.style.color = 'var(--color-primary)';
-        // Em um projeto real, você poderia trocar o ícone por um avatar do usuário
-        // e adicionar um dropdown para "Meu Perfil", "Sair", etc.
-    }
-}
+// Inicia a aplicação quando o DOM estiver pronto
+document.addEventListener('DOMContentLoaded', initializePage);
